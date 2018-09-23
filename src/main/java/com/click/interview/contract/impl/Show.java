@@ -22,7 +22,7 @@ public class Show implements Operation {
     }
 
     public String execute() {
-        LOG.info("show operation");
+        LOG.info("show operation. userId:{} transactionId:{}",userId, transactionId);
 
         return null;
     }

@@ -20,7 +20,7 @@ public class ListTransaction implements Operation {
     }
 
     public String execute() {
-        LOG.info("list transactions");
+        LOG.info("list transactions. userId:{}",userId);
 
         return null;
     }

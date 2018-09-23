@@ -22,7 +22,9 @@ public class Add implements Operation {
     }
 
     public String execute() {
-        LOG.info("add operation");
+        LOG.info("add operation. userId:{} transactionJson:{}",userId, transactionJson);
+
+
 
         return null;
     }

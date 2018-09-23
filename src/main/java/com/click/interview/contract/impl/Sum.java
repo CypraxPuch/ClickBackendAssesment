@@ -20,7 +20,7 @@ public class Sum implements Operation {
     }
 
     public String execute() {
-        LOG.info("sum operation");
+        LOG.info("sum operation. userId:{}",userId);
 
 
         return null;
