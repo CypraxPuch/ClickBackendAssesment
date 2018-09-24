@@ -1,5 +1,6 @@
 package com.click.interview.main;
 
+import com.click.interview.util.Util;
 import com.click.interview.contract.Operation;
 import com.click.interview.contract.impl.Add;
 import com.click.interview.contract.impl.ListTransaction;
@@ -25,23 +26,33 @@ public class InterviewApplication {
             try {
                 userId = Integer.parseInt(args[0]);
             } catch (NumberFormatException e) {
-                LOG.error("The first parameter should be a parseable integer as user id.", e);
-                System.exit(100);
+                LOG.error("The first parameter should be a parseable integer as user id.");
+                System.exit(200);
             }
 
             String param2 = args[1];
+            param2 = param2.toLowerCase();
             Operation op = null;
             try {
                 String[] ops = {"add", "list", "sum"};
                 Arrays.sort(ops);
                 int x = Arrays.binarySearch(ops, param2);
-                LOG.info("found index in:{}", x);
-                if( x >= 0 ){
-
+                LOG.debug("found index in:{}", x);
+                if (x >= 0) {
                     switch (param2) {
                         case "add":
                             String tranJson = args[2];
-                            op = new Add(userId, tranJson);
+                            if (Util.validJsonFormat(tranJson)) {
+                                int userIdInternal = Util.getUserIdFromJson(tranJson);
+                                if (userId != userIdInternal) {
+                                    LOG.error("Incorrect user id. The transaction cannot be added.");
+                                    System.exit(400);
+                                }
+                                op = new Add(userId, tranJson);
+                            } else {
+                                LOG.error("Invalid transaction format");
+                                System.exit(300);
+                            }
                             break;
                         case "list":
                             op = new ListTransaction(userId);
@@ -53,11 +64,16 @@ public class InterviewApplication {
                             break;
                     }
                 } else {
+                    //falta validación regex del transaction_Id
+                    if (!Util.validTransactionId(param2)) {
+                        LOG.error("Invalid transaction id format");
+                        System.exit(500);
+                    }
                     op = new Show(userId, param2);
                 }
             } catch (Exception e) {
-                LOG.error("Invalid 2nd parameter. Should be the operation or transaction id.",e);
-                System.exit(200);
+                LOG.error("Invalid 2nd parameter. Should be the operation or transaction id.", e);
+                System.exit(600);
             }
 
             if (op != null) {
@@ -65,8 +81,8 @@ public class InterviewApplication {
                 LOG.info("\n{}", res);
             }
         } else {
-            LOG.error("Missing arguments, finishing app...");
-            System.exit(-100);
+            LOG.error("Missing or too many arguments, finishing app...,\nsize:{}\nparams:{}",args.length,args);
+            System.exit(100);
         }
     }
 
