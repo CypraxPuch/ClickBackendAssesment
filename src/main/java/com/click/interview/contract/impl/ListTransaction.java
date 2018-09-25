@@ -1,6 +1,8 @@
 package com.click.interview.contract.impl;
 
 import com.click.interview.contract.Operation;
+import com.click.interview.data.dao.DAO;
+import com.click.interview.data.dao.TransactionDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +23,8 @@ public class ListTransaction implements Operation {
 
     public String execute() {
         LOG.info("list transactions. userId:{}",userId);
-
-        return null;
+        DAO<String> dao = new TransactionDAO();
+        return dao.getAllFormatted(this.userId);
     }
 }
 

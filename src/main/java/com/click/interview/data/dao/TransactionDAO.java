@@ -14,6 +14,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 
@@ -124,18 +126,18 @@ public class TransactionDAO implements DAO<String> {
 
         lst = this.getAll(userId);
         if (lst != null && !lst.isEmpty()) {
-            ObjectMapper objectMapper = new ObjectMapper();
             TransactionTO to = lst.stream()
                     .filter(t -> t.getTransaction_id().equalsIgnoreCase(transactionId))
                     .findAny()
                     .orElse(null);
-            if(to==null) {
+            if (to == null) {
                 result = "Transaction not found";
-            }else{
+            } else {
                 try {
+                    ObjectMapper objectMapper = new ObjectMapper();
                     result = objectMapper.writeValueAsString(to);
                 } catch (JsonProcessingException e) {
-                    LOG.error("Error getting info from transaction. userId:{}",userId,e);
+                    LOG.error("Error getting info from transaction. userId:{}", userId, e);
                     result = "Transaction not found";
                 }
             }
@@ -148,9 +150,24 @@ public class TransactionDAO implements DAO<String> {
 
     @Override
     public String getAllFormatted(Integer userId) {
+        List<TransactionTO> lst = null;
 
+        lst = this.getAll(userId);
 
-        return null;
+        lst.sort((t1, t2)->{
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate d1 = LocalDate.parse(t1.getDate(),formatter);
+            LocalDate d2 = LocalDate.parse(t2.getDate(),formatter);
+            return d1.compareTo(d2);
+        });
+        ObjectMapper objectMapper = new ObjectMapper();
+        String result = null;
+        try {
+            result = objectMapper.writeValueAsString(lst);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     private List<TransactionTO> getAll(Integer userId) {
@@ -185,12 +202,12 @@ public class TransactionDAO implements DAO<String> {
             ObjectMapper objectMapper = new ObjectMapper();
             Double amount = lst
                     .stream()
-                    .mapToDouble(t->Double.valueOf(t.getAmount()))
+                    .mapToDouble(t -> Double.valueOf(t.getAmount()))
                     .sum();
-            if(amount==null) {
+            if (amount == null) {
                 result = "Transaction not found";
-            }else{
-                result = "{\"user_id\":"+userId+", \"sum\":"+amount.toString()+"}";
+            } else {
+                result = "{\"user_id\":" + userId + ", \"sum\":" + amount.toString() + "}";
             }
         } else {
             result = "Transaction not found";
