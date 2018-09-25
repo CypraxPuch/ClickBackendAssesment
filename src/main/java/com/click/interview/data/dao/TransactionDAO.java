@@ -59,7 +59,7 @@ public class TransactionDAO implements DAO<String> {
         }
 
         if (!fileExists) {
-            result = "["+result+"]";
+            result = "[" + result + "]";
             t = result.getBytes(charset);
             try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(transactionPath, CREATE, APPEND))) {
                 out.write(t, 0, t.length);
@@ -72,13 +72,14 @@ public class TransactionDAO implements DAO<String> {
             ObjectMapper objectMapper = new ObjectMapper();
             List<TransactionTO> lstTrans = null;
             try {
-                lstTrans = objectMapper.readValue(transactionPath.toFile(), new TypeReference<List<TransactionTO>>(){});
+                lstTrans = objectMapper.readValue(transactionPath.toFile(), new TypeReference<List<TransactionTO>>() {
+                });
                 TransactionTO to = getTransactionTOFromJsonString(transaction);
                 lstTrans.add(to);
 
                 objectMapper.writeValue(transactionPath.toFile(), lstTrans);
             } catch (IOException e) {
-                LOG.error("Error readding json from file.",e);
+                LOG.error("Error readding json from file.", e);
             }
         }
 
@@ -115,14 +116,60 @@ public class TransactionDAO implements DAO<String> {
     }
 
     @Override
-    public String getById(Integer userId) {
+    public String getById(Integer userId, String transactionId) {
+        String result = "";
+        List<TransactionTO> lst = null;
+
+        lst = this.getAll(userId);
+        if (lst != null && !lst.isEmpty()) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            TransactionTO to = lst.stream()
+                    .filter(t -> t.getTransaction_id().equalsIgnoreCase(transactionId))
+                    .findAny()
+                    .orElse(null);
+            if(to==null) {
+                result = "Transaction not found";
+            }else{
+                try {
+                    result = objectMapper.writeValueAsString(to);
+                } catch (JsonProcessingException e) {
+                    LOG.error("Error getting info from transaction. userId:{}",userId,e);
+                    result = "Transaction not found";
+                }
+            }
+        } else {
+            result = "Transaction not found";
+        }
+
+        return result;
+    }
+
+    @Override
+    public String getAllFormatted(Integer userId) {
 
 
         return null;
     }
 
-    @Override
-    public List<String> getAll() {
-        return null;
+    private List<TransactionTO> getAll(Integer userId) {
+        List<TransactionTO> lstTrans = null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            lstTrans = objectMapper.readValue(getPathByUserId(userId).toFile(), new TypeReference<List<TransactionTO>>() {
+            });
+
+        } catch (IOException e) {
+            LOG.error("Error readding json from file.", e);
+        }
+        return lstTrans;
+    }
+
+    private Path getPathByUserId(Integer userId) {
+        Path currentRelativePath = Paths.get("");
+        String currDir = currentRelativePath.toAbsolutePath().toString();
+        //LOG.debug("Current relative path is: " + currDir);
+
+        Path transactionPath = Paths.get(currDir, "json", userId + ".json");
+        return transactionPath;
     }
 }

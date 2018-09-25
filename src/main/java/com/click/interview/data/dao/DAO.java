@@ -12,8 +12,8 @@ public interface DAO<T> {
 
     public String add(Integer userId, T t);
 
-    public T getById(Integer userId);
+    public T getById(Integer userId, String transactionId);
 
-    public List<T> getAll();
+    public String getAllFormatted(Integer userId);
 
 }
