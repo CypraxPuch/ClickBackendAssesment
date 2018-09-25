@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -171,5 +173,29 @@ public class TransactionDAO implements DAO<String> {
 
         Path transactionPath = Paths.get(currDir, "json", userId + ".json");
         return transactionPath;
+    }
+
+    @Override
+    public String sumByUserId(Integer userId) {
+        String result = "";
+        List<TransactionTO> lst = null;
+
+        lst = this.getAll(userId);
+        if (lst != null && !lst.isEmpty()) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Double amount = lst
+                    .stream()
+                    .mapToDouble(t->Double.valueOf(t.getAmount()))
+                    .sum();
+            if(amount==null) {
+                result = "Transaction not found";
+            }else{
+                result = "{\"user_id\":"+userId+", \"sum\":"+amount.toString()+"}";
+            }
+        } else {
+            result = "Transaction not found";
+        }
+
+        return result;
     }
 }

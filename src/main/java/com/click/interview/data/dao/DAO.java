@@ -16,4 +16,6 @@ public interface DAO<T> {
 
     public String getAllFormatted(Integer userId);
 
+    public String sumByUserId(Integer userId);
+
 }
