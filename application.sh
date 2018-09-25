@@ -6,7 +6,7 @@ dir=/opt/project/ClickBackendAssesment/target
 ##jar file name
 jar_name=pucheta-1.0-shaded.jar
 
-if [ $# -eq 4]; then
+if [ $# -eq 4 ]; then
     arg1=$1
     arg2=$2
     arg3=$3
