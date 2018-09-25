@@ -7,10 +7,20 @@ package com.click.interview.data.to;
  * 9/24/2018
  */
 public class TransactionTO implements TO {
+
+    private String transaction_id;
     private String amount;
     private String description;
     private String date;
-    private Integer userId;
+    private Integer user_id;
+
+    public String getTransaction_id() {
+        return transaction_id;
+    }
+
+    public void setTransaction_id(String transaction_id) {
+        this.transaction_id = transaction_id;
+    }
 
     public String getAmount() {
         return amount;
@@ -36,11 +46,11 @@ public class TransactionTO implements TO {
         this.date = date;
     }
 
-    public Integer getUserId() {
-        return userId;
+    public Integer getUser_id() {
+        return user_id;
     }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
+    public void setUser_id(Integer user_id) {
+        this.user_id = user_id;
     }
 }

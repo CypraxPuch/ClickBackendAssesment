@@ -1,5 +1,9 @@
 package com.click.interview.data.dao;
 
+import com.click.interview.data.to.TransactionTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,34 +36,71 @@ public class TransactionDAO implements DAO<String> {
         LOG.debug("Current relative path is: " + currDir);
 
         Path transactionPath = Paths.get(currDir, "json");
+        boolean fileExists = false;
         try {
             transactionPath = Files.createDirectories(transactionPath);
             currDir = transactionPath.toAbsolutePath().toString();
             transactionPath = Paths.get(currDir, userId + ".json");
             if (Files.notExists(transactionPath)) {
                 transactionPath = Files.createFile(transactionPath);
+            } else {
+                fileExists = true;
             }
         } catch (IOException e) {
             LOG.error("Exception creating json file to store transactions.", e);
         }
         Charset charset = Charset.forName("UTF-8");
+        byte[] t = null;
 
-        byte[] t = addUniqueIdToJson(transaction).concat(",\n").getBytes(charset);
-        try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(transactionPath, CREATE, APPEND))) {
-            out.write(t, 0, t.length);
-        } catch (IOException x) {
-            System.err.format("IOException: %s%n", x);
-            LOG.error("Error saving transaction.", x);
-            System.exit(700);
+        try {
+            result = addUniqueIdToJson(transaction);
+        } catch (JsonProcessingException e) {
+            LOG.error("Error parsing transaction.", e);
         }
 
-        result = "JSON de respuesta después del guardado exitoso...";
+        if (!fileExists) {
+            result = "["+result+"]";
+            t = result.getBytes(charset);
+            try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(transactionPath, CREATE, APPEND))) {
+                out.write(t, 0, t.length);
+            } catch (IOException x) {
+                System.err.format("IOException: %s%n", x);
+                LOG.error("Error saving transaction.", x);
+                System.exit(700);
+            }
+        } else {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<TransactionTO> lstTrans = null;
+            try {
+                lstTrans = objectMapper.readValue(transactionPath.toFile(), new TypeReference<List<TransactionTO>>(){});
+                TransactionTO to = getTransactionTOFromJsonString(transaction);
+                lstTrans.add(to);
+
+                objectMapper.writeValue(transactionPath.toFile(), lstTrans);
+            } catch (IOException e) {
+                LOG.error("Error readding json from file.",e);
+            }
+        }
 
         return result;
     }
 
-    private String addUniqueIdToJson(String transactionJson) {
-        return "{\"transaction_id\":\"" + getUniqueID() + "\"," + transactionJson.substring(1);
+    private String addUniqueIdToJson(String transactionJson) throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        TransactionTO to = getTransactionTOFromJsonString(transactionJson);
+        return om.writeValueAsString(to);
+    }
+
+    private TransactionTO getTransactionTOFromJsonString(String transactionJson) {
+        ObjectMapper om = new ObjectMapper();
+        TransactionTO to = null;
+        try {
+            to = om.readValue(transactionJson, TransactionTO.class);
+            to.setTransaction_id(getUniqueID());
+        } catch (IOException e) {
+            LOG.error("Error mapping json to TO", e);
+        }
+        return to;
     }
 
     private String getUniqueID() {
@@ -75,7 +116,6 @@ public class TransactionDAO implements DAO<String> {
 
     @Override
     public String getById(Integer userId) {
-
 
 
         return null;
