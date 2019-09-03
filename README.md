@@ -1,5 +1,5 @@
-# ClickBackendAssesment
-Click Backend Assesment
+# ClipBackendAssesment
+Clip Backend Assesment
 
 1. Clone the project
 
